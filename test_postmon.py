@@ -1,7 +1,4 @@
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 import json
 from decimal import Decimal
 
@@ -91,7 +88,7 @@ class TestCepIncompleto(unittest.TestCase):
         self.assertEqual('SP', self.endereco.estado.uf)
 
     def test_bairro_eh_nulo(self):
-        self.assertIsNone(self.endereco.bairro)
+        self.assertTrue(self.endereco.bairro is None)
 
 
 class TestCidade(unittest.TestCase):
@@ -166,14 +163,14 @@ class TestErrosEndereco(unittest.TestCase):
         url = '%s/cep/11111111' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=404)
         r = postmon.endereco('11111111')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
 
     @httpretty.activate
     def test_503(self):
         url = '%s/cep/22222222' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=503)
         r = postmon.endereco('22222222')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
 
 
 class TestErrosEstado(unittest.TestCase):
@@ -183,14 +180,14 @@ class TestErrosEstado(unittest.TestCase):
         url = '%s/uf/xx' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=404)
         r = postmon.estado('xx')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
 
     @httpretty.activate
     def test_503(self):
         url = '%s/uf/yy' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=503)
         r = postmon.estado('yy')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
 
 
 class TestErrosCidade(unittest.TestCase):
@@ -200,11 +197,11 @@ class TestErrosCidade(unittest.TestCase):
         url = '%s/cidade/xx/yy' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=404)
         r = postmon.cidade('xx', 'yy')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
 
     @httpretty.activate
     def test_503(self):
         url = '%s/cidade/yy/zz' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=503)
         r = postmon.cidade('yy', 'zz')
-        self.assertIsNone(r)
+        self.assertTrue(r is None)
