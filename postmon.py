@@ -163,17 +163,21 @@ class Endereco(PostmonModel):
     """
     endpoint = '/cep/%s'
 
-    def __init__(self, cep, logradouro=None, bairro=None, cidade=None,
-                 estado=None, cidade_info=None, estado_info=None, **kwargs):
+    def __init__(self, cep, logradouro=None, complemento=None, bairro=None,
+                 cidade=None, estado=None, cidade_info=None, estado_info=None,
+                 **kwargs):
         self.cep = cep
         self._params = cep
-        self.atualizar(logradouro=logradouro, bairro=bairro, cidade=cidade,
-                       estado=estado, cidade_info=cidade_info,
-                       estado_info=estado_info, **kwargs)
+        self.atualizar(logradouro=logradouro, complemento=complemento,
+                       bairro=bairro, cidade=cidade, estado=estado,
+                       cidade_info=cidade_info, estado_info=estado_info,
+                       **kwargs)
 
-    def atualizar(self, logradouro=None, bairro=None, cidade=None,
-                  estado=None, cidade_info=None, estado_info=None, **kwargs):
+    def atualizar(self, logradouro=None, complemento=None, bairro=None,
+                  cidade=None, estado=None, cidade_info=None, estado_info=None,
+                  **kwargs):
         self.logradouro = logradouro
+        self.complemento = complemento
         self.bairro = bairro
 
         if estado:
@@ -195,9 +199,26 @@ class Endereco(PostmonModel):
         return '<%s %r>' % (self.__class__.__name__, self.cep)
 
     def __str__(self):
-        return '%s, %s - %s, %s - CEP: %s' % (self.logradouro, self.bairro,
-                                              self.cidade, self.estado,
-                                              self.cep)
+        # a busca ainda não foi feita
+        if self._ok is None:
+            return 'CEP: %s' % self.cep
+
+        # juntando complemento e logradouro
+        p1 = None
+        if self.logradouro:
+            p1 = self.logradouro
+        if self.complemento:
+            p1 = '%s - %s' % (p1, self.complemento)
+
+        # juntando bairro e cidade
+        p2 = self.cidade.nome
+        if self.bairro:
+            p2 = '%s - %s' % (self.bairro, p2)
+
+        # juntando estado e cep
+        p3 = '%s - CEP %s' % (self.estado, self.cep)
+
+        return ', '.join(p for p in (p1, p2, p3) if p)
 
 
 def cidade(uf, nome):

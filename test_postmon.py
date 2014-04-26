@@ -2,7 +2,10 @@ import unittest
 import json
 from decimal import Decimal
 
+import mock
 import httpretty
+import requests
+
 import postmon
 
 BASE_URL = postmon.PostmonModel.base_url
@@ -16,6 +19,7 @@ class TestCepCompleto(unittest.TestCase):
         "cidade": "Cidade C",
         "cep": "11111111",
         "logradouro": "Logradouro L",
+        "complemento": "Complemento C",
         "estado_info": {
             "area_km2": "999.999,001",
             "codigo_ibge": "35",
@@ -48,11 +52,18 @@ class TestCepCompleto(unittest.TestCase):
     def test_logradouro(self):
         self.assertEqual('Logradouro L', self.endereco.logradouro)
 
+    def test_complemento(self):
+        self.assertEqual('Complemento C', self.endereco.complemento)
+
     def test_bairro(self):
         self.assertEqual('Bairro B', self.endereco.bairro)
 
     def test_url(self):
         self.assertEqual(self.url, self.endereco.url)
+
+    def test_str(self):
+        self.assertEqual('Logradouro L - Complemento C, Bairro B - Cidade C, '
+                         'SP - CEP 11111111', str(self.endereco))
 
 
 class TestCepIncompleto(unittest.TestCase):
@@ -89,6 +100,10 @@ class TestCepIncompleto(unittest.TestCase):
 
     def test_bairro_eh_nulo(self):
         self.assertTrue(self.endereco.bairro is None)
+
+    def test_str(self):
+        self.assertEqual('Cidade C, SP - CEP 22222222',
+                         str(self.endereco))
 
 
 class TestCidade(unittest.TestCase):
@@ -172,6 +187,12 @@ class TestErrosEndereco(unittest.TestCase):
         r = postmon.endereco('22222222')
         self.assertTrue(r is None)
 
+    @mock.patch('postmon.requests.get')
+    def test_request_exception(self, mock_get):
+        mock_get.side_effect = requests.RequestException
+        r = postmon.endereco('11111111')
+        self.assertTrue(r is None)
+
 
 class TestErrosEstado(unittest.TestCase):
 
@@ -187,6 +208,12 @@ class TestErrosEstado(unittest.TestCase):
         url = '%s/uf/yy' % BASE_URL
         httpretty.register_uri(httpretty.GET, url, status=503)
         r = postmon.estado('yy')
+        self.assertTrue(r is None)
+
+    @mock.patch('postmon.requests.get')
+    def test_request_exception(self, mock_get):
+        mock_get.side_effect = requests.RequestException
+        r = postmon.estado('xx')
         self.assertTrue(r is None)
 
 
@@ -205,3 +232,33 @@ class TestErrosCidade(unittest.TestCase):
         httpretty.register_uri(httpretty.GET, url, status=503)
         r = postmon.cidade('yy', 'zz')
         self.assertTrue(r is None)
+
+    @mock.patch('postmon.requests.get')
+    def test_request_exception(self, mock_get):
+        mock_get.side_effect = requests.RequestException
+        r = postmon.cidade('xx', 'yy')
+        self.assertTrue(r is None)
+
+
+class TestParseAreaKm2(unittest.TestCase):
+
+    def f(self, value):
+        return postmon._parse_area_km2(value)
+
+    def assert_f(self, expected, value):
+        self.assertEqual(expected, self.f(value))
+
+    def test_int_value(self):
+        self.assert_f(Decimal('331.000'), '331')
+
+    def test_km2_exact(self):
+        self.assert_f(Decimal('331.000'), '331,000')
+
+    def test_grouping_separators(self):
+        self.assert_f(Decimal('1331.101'), '1.331,101')
+
+    def test_decimal_value(self):
+        self.assert_f(Decimal('1331.101'), Decimal('1331.101'))
+
+    def test_none_value(self):
+        self.assertTrue(self.f(None) is None)
