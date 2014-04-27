@@ -1,6 +1,8 @@
 Postmon-python
 ==============
 
+[![Build Status](https://travis-ci.org/PostmonAPI/postmon-python.svg?branch=master)](https://travis-ci.org/PostmonAPI/postmon-python)
+
 O postmon-python é um wrapper da API do Postmon.
 
 As chamadas devem ser feitas para as funções do módulo, que fazem as chamadas
