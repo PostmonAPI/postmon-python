@@ -62,9 +62,9 @@ class PostmonModel(object):
     def url(self):
         """Retorna a URL chamada pelo objeto.
 
-        >>> e = Endereco('11111111')
+        >>> e = Endereco('11111-111')
         >>> e.url
-        'http://api.postmon.com.br/v1/cep/11111111'
+        'http://api.postmon.com.br/v1/cep/11111-111'
         """
         return self.base_url + (self.endpoint % self._params)
 
@@ -177,7 +177,7 @@ class Endereco(PostmonModel):
     ser buscado.
 
         >>> import postmon
-        >>> e = postmon.Endereco('30110-012')
+        >>> e = postmon.Endereco('11111-111')
         >>> if e.buscar():
         ...     print("Bairro: %s" % e.bairro)
         ... else:
@@ -277,8 +277,8 @@ def endereco(cep):
     comunicação.
 
         >>> import postmon
-        >>> postmon.endereco('01001-000')
-        <Endereco '01001-000'>
+        >>> postmon.endereco('11111-111')
+        <Endereco '11111-111'>
     """
     return _make_object(Endereco, cep)
 
@@ -308,3 +308,41 @@ def _parse_area_km2(valor):
     int_ = int_.replace('.', '')
 
     return Decimal('%s.%s' % (int_, dec))
+
+
+# patch das chamadas para o Postmon
+# TODO: isso é código de testes, não deveria estar nesse arquivo
+
+def setup():
+    import json
+    import httpretty
+    httpretty.enable()
+    url = '%s/cep/11111-111' % PostmonModel.base_url
+    response = {
+        "bairro": "Floresta",
+        "cidade": "Belo Horizonte",
+        "cep": "11111-111",
+        "estado": "MG"
+    }
+    httpretty.register_uri(httpretty.GET, url, body=json.dumps(response))
+
+    url = '%s/cidade/MG/Belo Horizonte' % PostmonModel.base_url
+    response = {
+        "area_km2": "586.522,122",
+        "codigo_ibge": "31",
+        "nome": "Minas Gerais"
+    }
+    httpretty.register_uri(httpretty.GET, url, body=json.dumps(response))
+
+    url = '%s/uf/MG' % PostmonModel.base_url
+    response = {
+        "area_km2": "586.522,122",
+        "codigo_ibge": "31",
+        "nome": "Minas Gerais"
+    }
+    httpretty.register_uri(httpretty.GET, url, body=json.dumps(response))
+
+
+def teardown():
+    import httpretty
+    httpretty.disable()
