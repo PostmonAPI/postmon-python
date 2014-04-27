@@ -90,7 +90,7 @@ class Cidade(PostmonModel):
     endpoint = '/cidade/%s/%s'
 
     def __init__(self, uf, nome, area_km2=None, codigo_ibge=None, **kwargs):
-        self.uf = uf
+        self.uf = uf.upper()
         self.nome = nome
         self._params = (uf, nome)
         self.atualizar(area_km2, codigo_ibge, **kwargs)
@@ -122,7 +122,7 @@ class Estado(PostmonModel):
 
     def __init__(self, uf, nome=None, area_km2=None, codigo_ibge=None,
                  **kwargs):
-        self.uf = uf
+        self.uf = uf.upper()
         self._params = uf
         self.atualizar(nome, area_km2, codigo_ibge, **kwargs)
 
@@ -201,7 +201,7 @@ class Endereco(PostmonModel):
     def __str__(self):
         # a busca ainda não foi feita
         if self._ok is None:
-            return 'CEP: %s' % self.cep
+            return 'CEP %s' % self.cep
 
         # juntando complemento e logradouro
         p1 = None

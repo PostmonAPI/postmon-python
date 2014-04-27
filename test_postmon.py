@@ -137,6 +137,9 @@ class TestCidade(unittest.TestCase):
     def test_url(self):
         self.assertEqual(self.url, self.cidade.url)
 
+    def test_str(self):
+        self.assertEqual('Belo Horizonte - MG', str(self.cidade))
+
 
 class TestEstado(unittest.TestCase):
 
@@ -192,6 +195,10 @@ class TestErrosEndereco(unittest.TestCase):
         mock_get.side_effect = requests.RequestException
         r = postmon.endereco('11111111')
         self.assertTrue(r is None)
+
+    def test_unloaded_entity_str(self):
+        e = postmon.Endereco('11111111')
+        self.assertEqual('CEP 11111111', str(e))
 
 
 class TestErrosEstado(unittest.TestCase):
@@ -262,3 +269,18 @@ class TestParseAreaKm2(unittest.TestCase):
 
     def test_none_value(self):
         self.assertTrue(self.f(None) is None)
+
+
+class TestStatusBeforeFetch(unittest.TestCase):
+
+    def test_endereco(self):
+        e = postmon.Endereco('11111111')
+        self.assertTrue(e.status is None)
+
+    def test_cidade(self):
+        e = postmon.Cidade('MG', 'Belo Horizonte')
+        self.assertTrue(e.status is None)
+
+    def test_estado(self):
+        e = postmon.Estado('SP')
+        self.assertTrue(e.status is None)
