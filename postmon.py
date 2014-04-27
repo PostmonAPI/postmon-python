@@ -6,6 +6,12 @@ As chamadas devem ser feitas para as funções do módulo, que fazem as chamadas
 para o Postmon e retornam objetos com os resultados. Em caso de falha, todas as
 funções retornam `None`.
 """
+
+__title__ = 'postmon'
+__version__ = '0.2'
+__author__ = 'Iuri de Silvio'
+__license__ = 'MIT'
+
 from decimal import Decimal
 import logging
 
@@ -18,14 +24,31 @@ class PostmonModel(object):
     """Objeto base para os modelos do Postmon."""
 
     base_url = 'http://api.postmon.com.br/v1'
+    base_user_agent = '/'.join([__title__, __version__])
+    _user_agent = None
+
+    @property
+    def user_agent(self):
+        """
+        User-Agent para as requisições feitas para o Postmon.
+
+        Retorna o ``base_user_agent`` concatenado com o ``User-Agent`` padrão
+        do requests.
+        """
+        if not self._user_agent:
+            session = requests.Session()
+            user_agent = session.headers['User-Agent']
+            self._user_agent = '%s %s' % (self.base_user_agent, user_agent)
+        return self._user_agent
 
     def buscar(self):
         """Faz a busca das informações do objeto no Postmon.
 
         Retorna um ``bool`` indicando se a busca foi bem sucedida.
         """
+        headers = {'User-Agent': self.user_agent}
         try:
-            self._response = requests.get(self.url)
+            self._response = requests.get(self.url, headers=headers)
         except requests.RequestException:
             logger.exception("%s.buscar() falhou: GET %s" %
                              (self.__class__.__name__, self.url))

@@ -220,6 +220,7 @@ class TestErrosEstado(unittest.TestCase):
     @mock.patch('postmon.requests.get')
     def test_request_exception(self, mock_get):
         mock_get.side_effect = requests.RequestException
+
         r = postmon.estado('xx')
         self.assertTrue(r is None)
 
@@ -284,3 +285,15 @@ class TestStatusBeforeFetch(unittest.TestCase):
     def test_estado(self):
         e = postmon.Estado('SP')
         self.assertTrue(e.status is None)
+
+
+class TestRequestClient(unittest.TestCase):
+
+    @httpretty.activate
+    def test_user_agent(self):
+        url = '%s/uf/xx' % BASE_URL
+        httpretty.register_uri(httpretty.GET, url, status=404)
+        e = postmon.Estado('xx')
+        e.buscar()
+        ua = e._response.request.headers['User-Agent'].split()
+        self.assertEqual(postmon.PostmonModel.base_user_agent, ua[0])

@@ -5,10 +5,11 @@ except ImportError:
 
 from setuptools import setup
 
+import postmon
 
 setup(
     name='postmon',
-    version='0.2',
+    version=postmon.__version__,
     description='Postmon service wrapper',
     url='http://github.com/PostmonAPI/postmon-python',
 
